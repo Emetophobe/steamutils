@@ -3,7 +3,6 @@
 # https://github.com/Emetophobe/steamutils/
 
 
-import sys
 import argparse
 import requests
 from bs4 import BeautifulSoup
@@ -22,9 +21,9 @@ def search_db(game):
     for row in table.find_all('tr'):
         column = row.text.strip().split('\n')
         if len(column) == 4 and column[0] != 'AppID' and column[2] != 'Name':
-            # Display the game details
-            print(f'\nGame:  {column[2]}')
-            print(f'AppId: {column[0]}')
+            print()
+            print('Game: ', column[2])
+            print('AppId: ', column[0])
 
 
 if __name__ == '__main__':
@@ -37,4 +36,4 @@ if __name__ == '__main__':
     try:
         search_db(args.search)
     except Exception as e:
-        sys.exit(f'Error: {e}')
+        print('Error: ', e)
