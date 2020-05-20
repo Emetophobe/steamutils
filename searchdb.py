@@ -3,6 +3,8 @@
 # https://github.com/Emetophobe/steamutils/
 
 
+import sys
+import codecs
 import argparse
 import requests
 from bs4 import BeautifulSoup
@@ -18,12 +20,18 @@ def search_db(game):
     # Extract the game names and steam app ids using Beautiful Soup
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find('table', {'class': 'table table-bordered table-hover'})
+    if not table:
+        print('Found 0 results.')
+        return
+
+    # Get a utf8 StreamWriter
+    utf8stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
+
+    # Display the results
     for row in table.find_all('tr'):
         column = row.text.strip().split('\n')
         if len(column) == 4 and column[0] != 'AppID' and column[2] != 'Name':
-            print()
-            print('Game: ', column[2])
-            print('AppId: ', column[0])
+            print(f'{column[2]} (AppID: {column[0]})', file=utf8stdout)
 
 
 if __name__ == '__main__':
