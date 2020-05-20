@@ -17,20 +17,27 @@ def get_games(steamdir):
 
     # Check if the steam directory is valid
     if not os.path.isdir(steam_apps) and not os.path.isdir(steam_common):
-        raise ValueError('Error: Invalid steam directory ' + steamdir)
+        raise ValueError(f'Error: Invalid steam directory {steamdir}')
 
     # Get the list of manifest files from steamapps
     acf_files = glob.glob(os.path.join(steam_apps, 'appmanifest_*.acf'))
     if len(acf_files) < 1:
-        raise ValueError('Error: Found 0 installed games in ' + steamdir)
+        raise ValueError(f'Error: Found 0 installed games in {steamdir}')
 
-    # Load the manifest files into a list of game dicts
+    # Load the manifest files into a list of dictionaries
     games = []
     for filename in acf_files:
-        manifest = _read_manifest(filename)
-        manifest['installdir'] = os.path.join(steam_common, manifest['installdir'])  # Use the absolute path
-        manifest['manifest'] = filename  # also store the manifest filename
-        games.append(manifest)
+        try:
+            # Get the manifest dictionary
+            manifest = _read_manifest(filename)
+
+            # Add the full installdir path and the manifest file
+            manifest['installdir'] = os.path.join(steam_common, manifest['installdir'])
+            manifest['manifest'] = filename
+        except OSError as e:
+            print(f'Failed to read {e.filename} ({e.strerror})')
+        else:
+            games.append(manifest)
 
     # Return a sorted list
     return sorted(games, key=lambda k: k['name'])
@@ -39,11 +46,11 @@ def get_games(steamdir):
 def print_game(game):
     """ Print the game data. """
     print()
-    print('game: ', game['name'])
-    print('appid: ', game['appid'])
-    print('installdir: ', game['installdir'])
-    print('manifest: ', game['manifest'])
-    print('size: ', _format_size(game['SizeOnDisk']))
+    print('name:', game['name'])
+    print('appid:', game['appid'])
+    print('installdir:', game['installdir'])
+    print('manifest:', game['manifest'])
+    print('size:', _format_size(game['SizeOnDisk']))
 
 
 def list_games(games):
@@ -54,7 +61,7 @@ def list_games(games):
 
 
 def find_games(games, name):
-    """ Find games by name or appid and print the results. """
+    """ Find games by name or appid. """
     matches = []
     for game in games:
         if name.lower() in game['name'].lower() or name in game['appid']:
@@ -66,7 +73,7 @@ def find_games(games, name):
 
 
 def _read_manifest(filename):
-    """ Returns a dictionary from the manifest file. """
+    """ Read a manifest file into a dictionary. """
     with open(filename, 'r') as fp:
         manifest = {}
         for line in fp:
@@ -81,15 +88,11 @@ def _read_manifest(filename):
 def _format_size(size):
     """ Format size into a human readable string. """
     size = int(size)
-    if size < 0:
-        return '0B'
-
-    for suffix in ('KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'):
-        size /= 1024
+    for suffix in ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB'):
         if size < 1024:
-            return f'{size:.1f} {suffix}'
-
-    return f'{size}B'
+            return f'{size:.1f}{suffix}'
+        size /= 1024
+    return f'{size:1f}YB'
 
 
 if __name__ == '__main__':
