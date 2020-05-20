@@ -29,7 +29,7 @@ def get_games(steamdir):
     for filename in acf_files:
         manifest = _read_manifest(filename)
         manifest['installdir'] = os.path.join(steam_common, manifest['installdir'])  # Use the absolute path
-        manifest['acf_file'] = filename
+        manifest['manifest'] = filename  # also store the manifest filename
         games.append(manifest)
 
     # Return a sorted list
@@ -42,7 +42,7 @@ def print_game(game):
     print('game: ', game['name'])
     print('appid: ', game['appid'])
     print('installdir: ', game['installdir'])
-    print('acf_file: ', game['acf_file'])
+    print('manifest: ', game['manifest'])
     print('size: ', _format_size(game['SizeOnDisk']))
 
 
@@ -72,9 +72,9 @@ def _read_manifest(filename):
         for line in fp:
             # Extract the key/value pairs
             matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
-            if len(matches) == 2:                   # must be a pair of strings
+            if len(matches) == 2:                   # require a pair of strings
                 key, value = matches[0], matches[1]
-                manifest[key] = value               # store the key/value string pair
+                manifest[key] = value               # store the key/value pair
         return manifest
 
 

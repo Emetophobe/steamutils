@@ -45,7 +45,7 @@ def delete_manifest(game):
     result = input('Would you like to remove the unused manifest file? [Y/N] ').lower()
     if result == 'yes' or result == 'y':
         try:
-            os.remove(game['acf_file'])
+            os.remove(game['manifest'])
         except OSError as e:
             print(f'Failed to delete: {e.filename} ({e.strerror})')
     else:
