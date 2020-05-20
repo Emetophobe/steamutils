@@ -97,9 +97,9 @@ def _format_size(size):
 
 if __name__ == '__main__':
     # Parse arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='List installed games or find a specific game.')
     parser.add_argument('steamdir', help='location of the steam directory', type=str)
-    parser.add_argument('-f', '--find', help='search for a specific game or app id', type=str)
+    parser.add_argument('-f', '--find', metavar='name', help='search for a specific game or app id', type=str)
     args = parser.parse_args()
 
     # Get the list of games

@@ -28,7 +28,7 @@ def search_db(game):
 
 if __name__ == '__main__':
     # Parse arguments
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='Find a game using the Steam Database (https://steamdb.info/search).')
     parser.add_argument('search', help='find a game by name or app id', type=str)
     args = parser.parse_args()
 
