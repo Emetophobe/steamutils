@@ -4,7 +4,6 @@
 
 
 import sys
-import codecs
 import argparse
 import requests
 from bs4 import BeautifulSoup
@@ -17,21 +16,25 @@ def search_db(game):
     r = requests.get(dbsearch, headers={'User-Agent': 'Mozilla 5.0/NT'})
     r.raise_for_status()    # throws a Requests Exception on http error
 
-    # Extract the game names and steam app ids using Beautiful Soup
+    # Parse the html using BeautifulSoup
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find('table', {'class': 'table table-bordered table-hover'})
     if not table:
         print('Found 0 results.')
         return
 
-    # Get a utf8 StreamWriter
-    utf8stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
-
-    # Display the results
+    # Create a dictionary of the results
+    results = {}
     for row in table.find_all('tr'):
         column = row.text.strip().split('\n')
         if len(column) == 4 and column[0] != 'AppID' and column[2] != 'Name':
-            print(f'{column[2]} (AppID: {column[0]})', file=utf8stdout)
+            results[column[2]] = column[0]
+
+    # Print the sorted results
+    for name, appid in sorted(results.items(), key=lambda item: item[0]):
+        sys.stdout.buffer.write(f'{name} (AppID: {appid})\n'.encode('utf8'))
+
+    sys.stdout.buffer.flush()
 
 
 if __name__ == '__main__':
