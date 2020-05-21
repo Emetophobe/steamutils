@@ -31,7 +31,7 @@ def search_db(game):
             results[column[2]] = column[0]
 
     # Print the sorted results
-    for name, appid in sorted(results.items(), key=lambda item: item[0]):
+    for name, appid in sorted(results.items()):
         sys.stdout.buffer.write(f'{name} (AppID: {appid})\n'.encode('utf8'))
 
     sys.stdout.buffer.flush()
