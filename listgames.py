@@ -11,11 +11,9 @@ import argparse
 
 def get_games(steamdir):
     """ Retrieve the list of games in steamdir. Uses the manifest files found in steamapps directory. """
-    # Common steam directories
+    # Check if the steam directory is valid
     steam_apps = os.path.join(os.path.abspath(steamdir), 'steamapps')
     steam_common = os.path.join(steam_apps, 'common')
-
-    # Check if the steam directory is valid
     if not os.path.isdir(steam_apps) and not os.path.isdir(steam_common):
         raise ValueError(f'Error: Invalid steam directory {steamdir}')
 
@@ -31,7 +29,7 @@ def get_games(steamdir):
             # Get the manifest dictionary
             manifest = _read_manifest(filename)
 
-            # Add the full installdir path and the manifest file
+            # Add the full installdir and manifest filename to the dictionary
             manifest['installdir'] = os.path.join(steam_common, manifest['installdir'])
             manifest['manifest'] = filename
         except OSError as e:
@@ -39,7 +37,7 @@ def get_games(steamdir):
         else:
             games.append(manifest)
 
-    # Return a sorted list
+    # Return a sorted list of games
     return sorted(games, key=lambda k: k['name'])
 
 

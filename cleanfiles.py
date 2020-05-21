@@ -65,7 +65,7 @@ def delete_directory(installdir):
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description='Clean up left over files and directories.',
-                                     epilog='All confirmed changes are final. USE AT YOUR OWN RISK!')
+                                     epilog='All changes are final. USE AT YOUR OWN RISK!')
     parser.add_argument('steamdir', help='location of the steam directory', type=str)
     args = parser.parse_args()
 
