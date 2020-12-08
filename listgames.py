@@ -4,7 +4,6 @@
 
 
 import os
-import sys
 import re
 import glob
 import argparse
@@ -19,10 +18,7 @@ def main():
     args = parser.parse_args()
 
     # Get installed games
-    try:
-        games = list_games(args.steamdir)
-    except (OSError, ValueError) as e:
-        sys.exit(e)
+    games = list_games(args.steamdir)
 
     # Apply optional search filter
     if args.search is not None:
@@ -97,4 +93,7 @@ def format_size(size):
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except (OSError, ValueError) as e:
+        print(e)
