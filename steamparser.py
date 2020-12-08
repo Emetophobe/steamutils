@@ -31,7 +31,7 @@ class SteamParser:
         Raises
         ------
         ValueError
-            If the steamdir is invalid
+            If the steamdir argument is invalid.
         """
 
         # Make sure the steam directory is valid
@@ -52,27 +52,23 @@ class SteamParser:
         Raises:
         -------
         OSError
-            If a manifest file can't be read
+            If a manifest file could not be read.
         """
         # Convert acf files into list of game manifests
         games = []
         for filename in self.acf_files:
-            try:
-                with open(filename, 'r') as fp:
-                    manifest = {}
-                    for line in fp:
-                        # Extract the key/value pairs
-                        matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
-                        if len(matches) == 2:                   # require a pair of strings
-                            key, value = matches[0], matches[1]
-                            manifest[key] = value               # store the key/value pair
+            with open(filename, 'r') as fp:
+                manifest = {}
+                for line in fp:
+                    # Extract the key/value pairs
+                    matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
+                    if len(matches) == 2:                   # require a pair of strings
+                        key, value = matches[0], matches[1]
+                        manifest[key] = value               # store the key/value pair
 
-                # Add the full installdir and manifest location to the dictionary
+                # Add the full path to the installdir and manifest file
                 manifest['installdir'] = os.path.join(self.steam_common, manifest['installdir'])
                 manifest['manifest'] = filename
-            except OSError as e:
-                print('Failed to read {} ({})'.format(e.filename, e.strerror))
-            else:
                 games.append(manifest)
 
         return sorted(games, key=lambda k: k['name'])
