@@ -3,10 +3,11 @@
 # https://github.com/Emetophobe/steamutils/
 
 
+import os
 import sys
+import re
+import glob
 import argparse
-
-from steamparser import SteamParser
 
 
 def main():
@@ -19,8 +20,7 @@ def main():
 
     # Get installed games
     try:
-        steam = SteamParser(args.steamdir)
-        games = steam.games()
+        games = list_games(args.steamdir)
     except (OSError, ValueError) as e:
         sys.exit(e)
 
@@ -32,11 +32,46 @@ def main():
                 matches.append(game)
         games = matches
 
-    # Print games list
+    # Print results
     print('Found {} games in {}{}'.format(len(games), args.steamdir, ':\n' if len(games) > 0 else '.'))
-    if len(games) < 1:
-        return
-    elif args.verbose:
+    if len(games) > 0:
+        print_games(games, args.verbose)
+
+
+def list_games(steamdir):
+    """ Get the list of installed Steam games. """
+    # Make sure the directory is valid
+    steam_apps = os.path.join(os.path.abspath(steamdir), 'steamapps')
+    steam_common = os.path.join(steam_apps, 'common')
+    if not os.path.isdir(steam_apps) and not os.path.isdir(steam_common):
+        raise ValueError('Error: Invalid steam directory.')
+
+    # Get list of manifest files from the steamapps directory
+    acf_files = glob.glob(os.path.join(steam_apps, 'appmanifest_*.acf'))
+
+    # Parse manifest files and create a list of game dicts
+    games = []
+    for filename in acf_files:
+        with open(filename, 'r') as fp:
+            manifest = {}
+            for line in fp:
+                # Extract the key/value pairs
+                matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
+                if len(matches) == 2:                   # require a pair of strings
+                    key, value = matches[0], matches[1]
+                    manifest[key] = value               # store the key/value pair
+
+            # Add the full path to the installdir and manifest file
+            manifest['installdir'] = os.path.join(steam_common, manifest['installdir'])
+            manifest['manifest'] = filename
+            games.append(manifest)
+
+    return sorted(games, key=lambda k: k['name'])
+
+
+def print_games(games, verbose):
+    """ Print list of manifest data. """
+    if verbose:
         for game in games:
             print('\nname:', game['name'])
             print('appid:', game['appid'])
