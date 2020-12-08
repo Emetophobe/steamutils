@@ -33,7 +33,7 @@ def main():
         games = matches
 
     # Print results
-    print('Found {} games in {}{}'.format(len(games), args.steamdir, ':\n' if len(games) > 0 else '.'))
+    print('Found {} games in {}{}'.format(len(games), args.steamdir, ':' if len(games) > 0 else '.'))
     if len(games) > 0:
         print_games(games, args.verbose)
 
@@ -80,6 +80,7 @@ def print_games(games, verbose):
             print('size:', format_size(game['SizeOnDisk']))
     else:
         format_row = "{:<50} {:<10} {}"
+        print()
         print(format_row.format("Name", "App Id", "Location"))  # header
         for game in games:
             print(format_row.format(game['name'], game['appid'], game['installdir']))
