@@ -9,8 +9,13 @@ import argparse
 from listgames import list_games
 
 
-def clean_files(steamdir):
-    """ Clean the steam directory of old leftover files. """
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description='Clean up left over files and directories.',
+                                     epilog='All changes are final. USE AT YOUR OWN RISK!')
+    parser.add_argument('steamdir', help='location of the steam directory', type=str)
+    args = parser.parse_args()
+
     # Get installed games
     games = list_games(args.steamdir)
 
@@ -58,15 +63,8 @@ def delete_directory(installdir):
 
 
 if __name__ == '__main__':
-    # Parse arguments
-    parser = argparse.ArgumentParser(description='Clean up left over files and directories.',
-                                     epilog='All changes are final. USE AT YOUR OWN RISK!')
-    parser.add_argument('steamdir', help='location of the steam directory', type=str)
-    args = parser.parse_args()
-
-    # Check for issues
     try:
-        clean_files(args.steamdir)
+        main()
     except (OSError, ValueError) as e:
         print(e)
     except KeyboardInterrupt:
