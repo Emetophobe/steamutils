@@ -5,32 +5,33 @@
 import os
 import shutil
 import argparse
-from listgames import get_games
+
+from listgames import list_games
 
 
-def check_issues(steamdir):
-    """ Check for issues with app manifests and game directories. """
-    # Get the list of games
-    games = get_games(steamdir)
+def clean_files(steamdir):
+    """ Clean the steam directory of old leftover files. """
+    # Get installed games
+    games = list_games(args.steamdir)
+
+    # Search for manifests without a matching installdir
     issues = 0
-
-    # Search for manifests with missing installdirs
     for game in games:
         if not os.path.exists(game['installdir']):
             delete_manifest(game)
-            issues = issues + 1
+            issues += 1
 
-    # Search for directories without a manifest file
-    steam_common = os.path.join(steamdir, 'steamapps', 'common')
+    # Search for directories without a matching manifest
+    steam_common = os.path.join(args.steamdir, 'steamapps', 'common')
     for filename in os.listdir(steam_common):
-        filename = os.path.join(steam_common, filename)
-        if os.path.isdir(filename):
+        path = os.path.join(steam_common, filename)
+        if os.path.isdir(path):
             for game in games:
-                if filename == game['installdir']:
+                if path == game['installdir']:
                     break
             else:
-                delete_directory(filename)
-                issues = issues + 1
+                delete_directory(path)
+                issues += 1
 
     if not issues:
         print('Found 0 issues.')
@@ -38,26 +39,20 @@ def check_issues(steamdir):
 
 def delete_manifest(game):
     """ Prompt to delete an unused manifest file without a matching game directory. """
-    print(f'\nThe directory for {game["name"]} no longer exists: {game["installdir"]}')
+    print('\nThe directory for {} no longer exists: {}'.format(game['name'], game['installdir']))
     result = input('Would you like to remove the unused manifest file? [Y/N] ').lower()
     if result == 'yes' or result == 'y':
-        try:
-            os.remove(game['manifest'])
-        except OSError as e:
-            print(f'Failed to delete: {e.filename} ({e.strerror})')
+        os.remove(game['manifest'])
     else:
         print('Skipping')
 
 
 def delete_directory(installdir):
     """ Prompt to delete an uninstalled installdir without a matching manifest file. """
-    print(f'\nFound a directory without a matching manifest file: {installdir}')
+    print('\nFound a directory without a matching manifest file: {}'.format(installdir))
     result = input('Would you like to delete it? [Y/N] ').lower()
     if result == 'yes' or result == 'y':
-        try:
-            shutil.rmtree(installdir)
-        except OSError as e:
-            print(f'Failed to delete: {installdir} ({e.strerror})')
+        shutil.rmtree(installdir)
     else:
         print('Skipping')
 
@@ -71,7 +66,7 @@ if __name__ == '__main__':
 
     # Check for issues
     try:
-        check_issues(args.steamdir)
+        clean_files(args.steamdir)
     except (OSError, ValueError) as e:
         print(e)
     except KeyboardInterrupt:
