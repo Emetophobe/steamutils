@@ -9,31 +9,6 @@ import glob
 import argparse
 
 
-def main():
-    # Parse arguments
-    parser = argparse.ArgumentParser(description='List installed games or find a specific game.')
-    parser.add_argument('steamdir', help='location of the steam directory', type=str)
-    parser.add_argument('-s', '--search', metavar='name', help='search for a specific game or app id', type=str)
-    parser.add_argument('-v', '--verbose', help='verbose game details', action='store_true')
-    args = parser.parse_args()
-
-    # Get installed games
-    games = list_games(args.steamdir)
-
-    # Apply optional search filter
-    if args.search is not None:
-        matches = []
-        for game in games:
-            if args.search.lower() in game['name'].lower() or args.search in game['appid']:
-                matches.append(game)
-        games = matches
-
-    # Print results
-    print('Found {} games in {}{}'.format(len(games), args.steamdir, ':' if len(games) > 0 else '.'))
-    if len(games) > 0:
-        print_games(games, args.verbose)
-
-
 def list_games(steamdir):
     """ Get the list of installed Steam games. """
     # Make sure the directory is valid
@@ -65,25 +40,28 @@ def list_games(steamdir):
     return sorted(games, key=lambda k: k['name'])
 
 
-def print_games(games, verbose):
-    """ Print list of manifest data. """
-    if verbose:
-        for game in games:
-            print('\nname:', game['name'])
-            print('appid:', game['appid'])
-            print('installdir:', game['installdir'])
-            print('manifest:', game['manifest'])
-            print('size:', format_size(game['SizeOnDisk']))
-    else:
-        format_row = "{:<50} {:<10} {}"
+def print_games(games):
+    """ Print the list of games in condensed table. """
+    format_row = "{:<50} {:<10} {}"
+    print()
+    print(format_row.format("Name", "App Id", "Location"))  # header
+    for game in games:
+        print(format_row.format(game['name'], game['appid'], game['installdir']))
+
+
+def print_detailed_games(games):
+    """ Print a detailed list of games. """
+    for game in games:
         print()
-        print(format_row.format("Name", "App Id", "Location"))  # header
-        for game in games:
-            print(format_row.format(game['name'], game['appid'], game['installdir']))
+        print('name:', game['name'])
+        print('appid:', game['appid'])
+        print('installdir:', game['installdir'])
+        print('manifest:', game['manifest'])
+        print('size:', format_size(game['SizeOnDisk']))
 
 
 def format_size(size):
-    """ Format install size into a human readable string. """
+    """ Format byte size into a human readable string. """
     size = int(size)
     for suffix in ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB'):
         if size < 1024:
@@ -92,8 +70,37 @@ def format_size(size):
     return '{:1f}YB'.format(size)
 
 
-if __name__ == '__main__':
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description='List installed games or find a specific game.')
+    parser.add_argument('steamdir', help='location of the steam directory', type=str)
+    parser.add_argument('-s', '--search', metavar='name', help='search for a specific game or app id', type=str)
+    parser.add_argument('-v', '--verbose', help='verbose game details', action='store_true')
+    args = parser.parse_args()
+
+    # Get installed games
     try:
-        main()
+        games = list_games(args.steamdir)
     except (OSError, ValueError) as e:
         print(e)
+        return
+
+    # Apply optional search filter
+    if args.search is not None:
+        matches = []
+        for game in games:
+            if args.search.lower() in game['name'].lower() or args.search in game['appid']:
+                matches.append(game)
+        games = matches
+
+    # Print results
+    if not games:
+        print('Found 0 games.')
+    elif args.verbose:
+        print_detailed_games(games)
+    else:
+        print_games(games)
+
+
+if __name__ == '__main__':
+    main()
