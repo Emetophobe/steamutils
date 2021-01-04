@@ -77,12 +77,8 @@ def main():
     parser.add_argument('-v', '--verbose', help='verbose game details', action='store_true')
     args = parser.parse_args()
 
-    # Get installed games
-    try:
-        games = list_games(args.steamdir)
-    except (OSError, ValueError) as e:
-        print(e)
-        return
+    # Get list of installed games
+    games = list_games(args.steamdir)
 
     # Apply optional search filter
     if args.search is not None:
@@ -102,4 +98,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except (OSError, ValueError) as e:
+        print(e)
