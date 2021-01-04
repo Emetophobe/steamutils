@@ -41,16 +41,15 @@ def list_games(steamdir):
 
 
 def print_games(games):
-    """ Print the list of games in condensed table. """
-    format_row = "{:<50} {:<10} {}"
-    print()
-    print(format_row.format("Name", "App Id", "Location"))  # header
+    """ Print a tabular games list. """
+    row = '{:<50} {:<10} {}'
+    print(row.format('Name', 'App Id', 'Location'))
     for game in games:
-        print(format_row.format(game['name'], game['appid'], game['installdir']))
+        print(row.format(game['name'], game['appid'], game['installdir']))
 
 
 def print_detailed_games(games):
-    """ Print a detailed list of games. """
+    """ Print a detailed games list. """
     for game in games:
         print()
         print('name:', game['name'])
@@ -61,7 +60,7 @@ def print_detailed_games(games):
 
 
 def format_size(size):
-    """ Format byte size into a human readable string. """
+    """ Format install size into a human readable string. """
     size = int(size)
     for suffix in ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB'):
         if size < 1024:
