@@ -1,7 +1,6 @@
-# steamutils
 
-List installed Steam games from the command line.
-
+### listgames.py - List Steam games from the command line
+---
 
 Installation:
 
