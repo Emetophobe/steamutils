@@ -36,7 +36,7 @@ def find_games(search, games):
     """ Filter games by name or appid. """
     matches = []
     for game in games:
-        if args.search.lower() in game['name'].lower() or args.search in game['appid']:
+        if search.lower() in game['name'].lower() or search in game['appid']:
             matches.append(game)
     return matches
 
@@ -76,10 +76,10 @@ def format_size(size):
     return '{:1f}YB'.format(size)
 
 
-def _read_manifest(steam_common, manifest):
+def _read_manifest(steam_common, filename):
     """ Read manifest file into a dictionary. """
-    with open(manifest, 'r') as infile:
-        data = {}
+    with open(filename, 'r') as infile:
+        manifest = {}
         for line in infile:
             # Extract the key/value pairs
             matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
@@ -87,10 +87,11 @@ def _read_manifest(steam_common, manifest):
                 key, value = matches[0], matches[1]
                 manifest[key] = value               # store the key/value pair
 
-        # Add install path and manifest path
-        data['installpath'] = os.path.join(steam_common, manifest['installdir'])
-        data['manifestpath'] = filename
-    return data
+        # Add extra install path and manifest path information
+        manifest['_installpath'] = os.path.join(steam_common, manifest['installdir'])
+        manifest['_manifestpath'] = filename
+
+    return manifest
 
 
 def main():
