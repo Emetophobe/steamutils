@@ -3,12 +3,13 @@
 List installed Steam games from the command line.
 
 
-Requirements:
-    * Python 3.6 or later
-
 Installation:
 
     $ git clone https://github.com/Emetophobe/steamutils
+
+Requirements:
+
+    * Python 3.6 or later
 
 Usage:
 
