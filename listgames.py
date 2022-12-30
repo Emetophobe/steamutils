@@ -62,7 +62,8 @@ def print_manifests(games):
     """ Display the raw manifest details """
     for game in games:
         for key, value in game.items():
-            print(key, value)
+            if not key.startswith('_'):
+                print(key, value)
         print()
 
 
@@ -121,7 +122,7 @@ def main():
         if args.detail:
             print_detailed_games(games)
         elif args.raw:
-            print_raw_games(games)
+            print_manifests(games)
         else:
             print_games(games)
     else:
