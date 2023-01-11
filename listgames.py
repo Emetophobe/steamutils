@@ -9,39 +9,60 @@ import glob
 import argparse
 
 
-def list_games(path):
-    """ Get list of installed steam games. """
-    path = os.path.abspath(path)
-    apps = os.path.join(path, 'steamapps')
-    common = os.path.join(apps, 'common')
+class SteamInstall:
 
-    # Make sure the directories exist
-    if not os.path.isdir(apps) or not os.path.isdir(common):
-        raise ValueError('Invalid steam directory')
+    def __init__(self, path):
+        # Required steam directories
+        self.steam_dir = os.path.abspath(path)
+        self.steam_apps = os.path.join(self.steam_dir, 'steamapps')
+        self.steam_common = os.path.join(self.steam_apps, 'common')
 
-    # Get list of app manifests
-    manifests = glob.glob(os.path.join(apps, 'appmanifest_*.acf'))
+        if not os.path.isdir(self.steam_apps) or not os.path.isdir(self.steam_common):
+            raise ValueError('Invalid steam directory')
 
-    # Parse manifest files into a list of dictionaries
-    games = [_read_manifest(common, f) for f in manifests]
+        self.load_manifests()
 
-    # Make sure we have game manifests
-    if not manifests or not games:
-        raise ValueError('Invalid steam directory (found 0 manifest files)')
+    def list_games(self):
+        """ List installed games. """
+        return sorted(self.games, key=lambda k: k['name'])
 
-    return sorted(games, key=lambda k: k['name'])
+    def filter_games(self, search_text):
+        """ Filter installed games by name or appid. """
+        matches = []
+        for game in self.list_games():  # Get sorted list
+            if search_text.lower() in game['name'].lower() or search_text in game['appid']:
+                matches.append(game)
+        return matches
 
+    def load_manifests(self):
+        """ Load the app manifest files. """
+        self.manifests = glob.glob(os.path.join(self.steam_apps, 'appmanifest_*.acf'))
+        self.games = [self._read_manifest(f) for f in self.manifests]
 
-def find_games(search, games):
-    """ Filter games by name or appid. """
-    matches = []
-    for game in games:
-        if search.lower() in game['name'].lower() or search in game['appid']:
-            matches.append(game)
-    return matches
+        if not self.manifests or not self.games:
+            raise ValueError('Invalid steam directory (found 0 manifest files)')
+
+    def _read_manifest(self, filename):
+        """ Read an app manifest into a dictionary. """
+        with open(filename, 'r') as infile:
+            manifest = {}
+            for line in infile:
+                # Extract the key/value pairs
+                matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
+                if len(matches) == 2:                   # require a pair of strings
+                    key, value = matches[0], matches[1]
+                    manifest[key] = value               # store the key/value pair
+
+            # Store extra info about install path and manifest path
+            installdir = os.path.join(self.steam_common, manifest['installdir'])
+            manifest['_installpath'] = installdir
+            manifest['_manifestpath'] = filename
+
+            return manifest
 
 
 def print_games(games):
+    """ Print condensed list of games. """
     row = '{:<45} {:<10} {}'
     print(row.format('Name', 'App id', 'Install path'))
     for game in games:
@@ -49,6 +70,7 @@ def print_games(games):
 
 
 def print_detailed_games(games):
+    """ Print detailed list of games. """
     for game in games:
         print()
         print('name:', game['name'])
@@ -59,11 +81,11 @@ def print_detailed_games(games):
 
 
 def print_manifests(games):
-    """ Display the raw manifest details """
+    """ Print raw manifest details. """
     for game in games:
         for key, value in game.items():
             if not key.startswith('_'):
-                print(key, value)
+                print(f'{key}: {value}')
         print()
 
 
@@ -75,24 +97,6 @@ def format_size(size):
             return '{:.1f}{}'.format(size, suffix)
         size /= 1024
     return '{:1f}YB'.format(size)
-
-
-def _read_manifest(steam_common, filename):
-    """ Read manifest file into a dictionary. """
-    with open(filename, 'r') as infile:
-        manifest = {}
-        for line in infile:
-            # Extract the key/value pairs
-            matches = re.findall(r'"(.*?)"', line)  # find strings inside double quotes
-            if len(matches) == 2:                   # require a pair of strings
-                key, value = matches[0], matches[1]
-                manifest[key] = value               # store the key/value pair
-
-        # Add extra install path and manifest path information
-        manifest['_installpath'] = os.path.join(steam_common, manifest['installdir'])
-        manifest['_manifestpath'] = filename
-
-    return manifest
 
 
 def main():
@@ -108,14 +112,16 @@ def main():
 
     # Get list of installed games
     try:
-        games = list_games(args.steamdir)
+        steam = SteamInstall(args.steamdir)
     except (ValueError, OSError) as e:
         print('Error:', e, file=sys.stderr)
-        return 1
+        return 2
 
     # Apply optional search filter
     if args.search:
-        games = find_games(args.search, games)
+        games = steam.filter_games(args.search)
+    else:
+        games = steam.list_games()
 
     # Print results
     if games:
@@ -128,7 +134,7 @@ def main():
     else:
         print('0 games found.')
 
-    return 1
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
