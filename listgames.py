@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright (C) 2019-2022 Mike Cunningham
+# Copyright (C) 2019-2023 Mike Cunningham
 # https://github.com/Emetophobe/steamutils/
 
 import os
